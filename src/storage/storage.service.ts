@@ -15,9 +15,12 @@ export class StorageService implements OnModuleInit {
     }
 
     onModuleInit(): void {
+        
         const path = join('.', this.configService.get<string>('FOLDER_UPLOAD'));
+      
         if (!fs.existsSync(path)) {
-            fs.mkdirSync(path);
+            fs.mkdirSync(path, { recursive: true });
+      
         }
     }
 

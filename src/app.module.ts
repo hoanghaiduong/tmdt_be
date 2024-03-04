@@ -49,8 +49,9 @@ import { OrderProductModule } from './order-product/order-product.module';
       return addTransactionalDataSource(new DataSource(options));
     },
   }),
-    UsersModule,
+
     StorageModule,
+    UsersModule,
     ProvidersModule,
     CategoriesModule,
     ProductsModule,
@@ -60,7 +61,7 @@ import { OrderProductModule } from './order-product/order-product.module';
     RequestFormModule,
     AuthModule,
     OrderProductModule,
-  
+
   ],
   controllers: [AppController],
   providers: [AppService],
