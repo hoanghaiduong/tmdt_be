@@ -21,7 +21,7 @@ import { OrderProductModule } from './order-product/order-product.module';
 import { GoogleDriveModule } from 'nestjs-google-drive';
 
 @Module({
-<<<<<<< HEAD
+
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
@@ -60,38 +60,6 @@ import { GoogleDriveModule } from 'nestjs-google-drive';
     }),
 
     UsersModule,
-=======
-  imports: [ConfigModule.forRoot({
-    isGlobal: true,
-    validationSchema,
-    envFilePath: [`.env`, `.env.${process.env.NODE_ENV}`], // load env
-  }),
-  TypeOrmModule.forRootAsync({
-    imports: [ConfigModule],
-    inject: [ConfigService],
-    useFactory: (configService: ConfigService) => {
-      return {
-        type: "postgres",
-        port: configService.get<number>("POSTGRES_PORT"),
-        host: configService.get<string>("POSTGRES_HOST"),
-        username: configService.get<string>("POSTGRES_USER"),
-        password: configService.get<string>("POSTGRES_PASSWORD"),
-        database: configService.get<string>("POSTGRES_DB"),
-        entities: [__dirname + "/**/*.entity{.ts,.js}"],
-        synchronize: true,
-        logging: true,
-        autoLoadEntities: true,
-      };
-    },
-    async dataSourceFactory(options) {
-      if (!options) {
-        throw new Error('Invalid options passed');
-      }
-      return addTransactionalDataSource(new DataSource(options));
-    },
-  }),
-
->>>>>>> 59a8ebbb8090db3b31c77539b6e39af60eb4c480
     StorageModule,
     UsersModule,
     ProvidersModule,
