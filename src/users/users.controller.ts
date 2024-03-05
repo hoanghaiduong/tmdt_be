@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Put, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Put, UseGuards, UploadedFile } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto, UpdateUserManager } from './dto/update-user.dto';
 import { UserService } from './users.service';
@@ -11,6 +11,10 @@ import { UUIDQuery } from 'src/common/decorator/uuid.decorator';
 import { ApiTags } from '@nestjs/swagger';
 import { LocalAuthGuard } from 'src/auth/guard/local-auth.guard';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
+import { ApiFile, ApiMemoryFile } from 'src/common/decorator/file.decorator';
+import { MulterUtils, UploadTypesEnum } from 'src/common/utils/multer.util';
+import { FileTypes, ImagePath } from 'src/common/enum';
+import { UploadFileDTO } from './dto/file.dto';
 
 @Controller('users')
 @ApiTags("API Quản lý người dùng")
@@ -18,6 +22,23 @@ import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 
 export class UsersController {
   constructor(private readonly userService: UserService) { }
+  @Get(`getFileUpload`)
+  async getFileUpload(@Query('file') file: string): Promise<string> {
+    return await this.userService.getFileUrl(file);
+  }
+  @Post('upload-avatar-user')
+
+  @ApiFile(
+    'avatar',
+    MulterUtils.getConfig(UploadTypesEnum.IMAGES, ImagePath.CARD_USER)
+  )
+  async uploadAvatarUser(@AuthUser() user: User, @Body() dto: UploadFileDTO, @UploadedFile() avatar?: Express.Multer.File): Promise<Object> {
+    return this.userService.updateAvatar({
+      ...dto,
+      user,
+      avatar
+    });
+  }
 
   @Get('my')
   @Note('Lấy thông tin người dùng')
@@ -26,7 +47,7 @@ export class UsersController {
   }
 
   @Public()
-  @Get('')
+  @Get()
   @Note('Lấy thông tin tất cả người dùng')
   async getAllUsers(@Query() pagination: Pagination) {
     return await this.userService.getPaginationUsers(pagination);
@@ -54,6 +75,12 @@ export class UsersController {
     // @UploadedFile() avatar?: Express.Multer.File,
   ): Promise<User> {
     return await this.userService.updateProfile(user, dto);
+  }
+
+  @Note("Tìm người dùng theo id")
+  @Get('getOne')
+  async getUserById(@Query('id') id: string): Promise<User> {
+    return await this.userService.getUserRelations(id);
   }
 
   @Note('Tạo tài khoản người dùng')

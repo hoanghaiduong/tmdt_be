@@ -18,37 +18,46 @@ import { addTransactionalDataSource } from 'typeorm-transactional';
 import { DataSource } from 'typeorm';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { OrderProductModule } from './order-product/order-product.module';
+import { GoogleDriveModule } from 'nestjs-google-drive';
 
 @Module({
-  imports: [ConfigModule.forRoot({
-    isGlobal: true,
-    validationSchema,
-    envFilePath: [`.env`, `.env.${process.env.NODE_ENV}`], // load env
-  }),
-  TypeOrmModule.forRootAsync({
-    imports: [ConfigModule],
-    inject: [ConfigService],
-    useFactory: (configService: ConfigService) => {
-      return {
-        type: "postgres",
-        port: configService.get<number>("POSTGRES_PORT"),
-        host: configService.get<string>("POSTGRES_HOST"),
-        username: configService.get<string>("POSTGRES_USER"),
-        password: configService.get<string>("POSTGRES_PASSWORD"),
-        database: configService.get<string>("POSTGRES_DB"),
-        entities: [__dirname + "/**/*.entity{.ts,.js}"],
-        synchronize: true,
-        logging: true,
-        autoLoadEntities: true,
-      };
-    },
-    async dataSourceFactory(options) {
-      if (!options) {
-        throw new Error('Invalid options passed');
-      }
-      return addTransactionalDataSource(new DataSource(options));
-    },
-  }),
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validationSchema,
+      envFilePath: [`.env`, `.env.${process.env.NODE_ENV}`], // load env
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        return {
+          type: "postgres",
+          port: configService.get<number>("POSTGRES_PORT"),
+          host: configService.get<string>("POSTGRES_HOST"),
+          username: configService.get<string>("POSTGRES_USER"),
+          password: configService.get<string>("POSTGRES_PASSWORD"),
+          database: configService.get<string>("POSTGRES_DB"),
+          entities: [__dirname + "/**/*.entity{.ts,.js}"],
+          synchronize: true,
+          logging: true,
+          autoLoadEntities: true,
+        };
+      },
+      async dataSourceFactory(options) {
+        if (!options) {
+          throw new Error('Invalid options passed');
+        }
+        return addTransactionalDataSource(new DataSource(options));
+      },
+    }),
+    GoogleDriveModule.register({
+      clientId: '479742857644-7m5phg64m2n4b3jjq54ianbd9sfv89or.apps.googleusercontent.com',
+      clientSecret: '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',
+      redirectUrl: 'https://developers.google.com/oauthplayground',
+      refreshToken: '1//04QxiN0m8Va-vCgYIARAAGAQSNwF-L9Ir-mPSrLl9IIEvG2TqacXcWgh0-whWDm8JY4VArsKc-sLxTG-5Zoi09PpI68iKcqGXYWg',
+    }),
+
     UsersModule,
     StorageModule,
     ProvidersModule,
@@ -60,7 +69,7 @@ import { OrderProductModule } from './order-product/order-product.module';
     RequestFormModule,
     AuthModule,
     OrderProductModule,
-  
+
   ],
   controllers: [AppController],
   providers: [AppService],

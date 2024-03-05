@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -17,14 +17,59 @@ import { Role } from 'src/common/enum/auth';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto, UpdateUserManager } from './dto/update-user.dto';
 import { plainToClass } from 'class-transformer';
+import { GoogleDriveService } from 'nestjs-google-drive';
+import { UploadFileDTO } from './dto/file.dto';
+import axios from 'axios';
+import { StorageService } from 'src/storage/storage.service';
+import { ImagePath } from 'src/common/enum';
 
 
 @Injectable()
 export class UserService implements OnModuleInit {
   constructor(
     @InjectRepository(User) private usersRepository: Repository<User>,
+    private readonly storageService: StorageService,
+    private readonly googleDriveService: GoogleDriveService
   ) { }
+  async updateAvatar(dto: UploadFileDTO): Promise<Object> {
 
+    const GOOGLE_DRIVE_FOLDER_ID = '1_Tbqgsj1qEn9UsUzfCsp4c3a-0YkvdTP';
+
+    const avatarUrl = await this.googleDriveService.uploadFile(
+      dto.avatar,
+      GOOGLE_DRIVE_FOLDER_ID,
+    );
+    if (avatarUrl) {
+      MulterUtils.deleteFileAbsoulutePath(dto.avatar.path);
+    } else {
+      throw new BadRequestException(`Uploaded avatar failed: ${dto.avatar.filename}`);
+    }
+    return {
+      avatar: dto.avatar,
+      urlDownloaded: avatarUrl
+    };
+  }
+  async getFileUrl(url: string) {
+    const result = await this.getFileNameFromUrl(url);
+
+    // MulterUtils.deleteFileAbsoulutePath(url);
+    return result;
+  }
+  async getFileNameFromUrl(url: string): Promise<string> {
+    try {
+      const response = await axios.head(url);
+      const contentDisposition = response.headers['content-disposition'];
+      if (contentDisposition && contentDisposition.includes('filename=')) {
+        const startIndex = contentDisposition.indexOf('filename=') + 9;
+        const endIndex = contentDisposition.indexOf(';', startIndex);
+        return contentDisposition.substring(startIndex, endIndex !== -1 ? endIndex : undefined);
+      }
+      throw new Error('File name not found in response headers');
+    } catch (error) {
+      console.error('Error retrieving file name:', error);
+      return '';
+    }
+  }
   async onModuleInit() {
     // xóa toàn bộ user có role là khác ADMIN
     // await this.usersRepository.delete({ id : 'fba35ebc-85ab-4e1e-ab77-180e30614dfe' });
@@ -82,7 +127,7 @@ export class UserService implements OnModuleInit {
       .returning('*')
       .execute();
     const execute = (await queryBuilder).raw[0];
-    return plainToClass(User,execute);
+    return plainToClass(User, execute);
   }
 
   async existsPhoneNumber(phoneNumber: string): Promise<boolean> {
@@ -150,6 +195,19 @@ export class UserService implements OnModuleInit {
       .createQueryBuilder('user')
       .where('user.id = :id', { id })
       .getOne();
+    if (!user) {
+      throw new ApiException(ErrorMessages.USER_NOT_FOUND);
+    }
+    return user;
+  }
+  async getUserRelations(id: string): Promise<User> {
+    const user = await this.usersRepository.findOne({
+      where: {
+        id
+      },
+      relations: ['orders', 'feedBacks'],
+
+    })
     if (!user) {
       throw new ApiException(ErrorMessages.USER_NOT_FOUND);
     }

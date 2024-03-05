@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from "@nestjs/common";
+import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as fs from "fs";
 import { ImagePath } from "../common/enum";
@@ -32,14 +32,16 @@ export class StorageService implements OnModuleInit {
                 const imagePath = await this.buildImageFilePath(type, imageName);
                 await sharp(file.buffer).toFile(imagePath);
 
-                // console.log('chạy voà đây', imagePath.replace(/\\/g, '/').replace('public/', '/uploads/'))
+               // Logger.debug('chạy voà đây', imagePath.replace(/\\/g, '/').replace(patch, '/uploads/'))
                 return imagePath.replace(/\\/g, '/').replace(patch, '/uploads/');
             default:
 
+               // Logger.debug('chạy voà đây', imagePath.replace(/\\/g, '/').replace(patch, '/uploads/'))
                 // Xử lý cho các trường hợp mimetype không rơi vào các trường hợp trên
                 const fileName = await this.buildOtherFileName(type, file.filename)
                 const filePath = await this.buildImageFilePath(type, fileName);
                 await sharp(filePath).toFile(filePath)
+
                 return filePath.replace(/\\/g, '/').replace(patch, '/uploads/');
         }
 

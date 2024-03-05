@@ -50,7 +50,7 @@ export class MulterUtils {
       // Storage properties
       storage: diskStorage({
         destination: (req: any, file: any, cb: any) => {
-          const uploadPath = `${process.env.UPLOAD_LOCATION}/${path}`;
+          const uploadPath = `${process.env.FOLDER_UPLOAD}/${path}`;
           if (!existsSync(uploadPath)) {
             mkdirSync(uploadPath, { recursive: true });
           }
@@ -69,23 +69,27 @@ export class MulterUtils {
       fs.unlinkSync(`${'public'}/${image}`);
     }
   }
-
-  static deleteFiles(images: string[]) {
-    images.forEach((image) => {
-      if (existsSync(`${'public'}/${image}`)) {
-        fs.unlinkSync(`${'public'}/${image}`);
-      }
-    });
+  static deleteFileAbsoulutePath(url: string) {
+    if (existsSync(url)) {
+      fs.unlinkSync(url);
+    }
   }
+  static deleteFiles(images: string[]) {
+  images.forEach((image) => {
+    if (existsSync(`${'public'}/${image}`)) {
+      fs.unlinkSync(`${'public'}/${image}`);
+    }
+  });
+}
 
   static convertArrayPathToUrl(paths: string[]) {
-    // return  path.replace(/\\/g, '/').replace('public', '');
-    return paths.map(
-      (path) => `${path.replace(/\\/g, '/').replace('public', '')}`,
-    );
-  }
+  // return  path.replace(/\\/g, '/').replace('public', '');
+  return paths.map(
+    (path) => `${path.replace(/\\/g, '/').replace('public', '')}`,
+  );
+}
 
   static convertPathToUrl(path: string) {
-    return path.replace(/\\/g, '/').replace('public', '');
-  }
+  return path.replace(/\\/g, '/').replace('public', '');
+}
 }
